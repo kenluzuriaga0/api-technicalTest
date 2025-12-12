@@ -1,0 +1,28 @@
+service: orders-orchestrator
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  environment:
+    CUSTOMERS_API_URL: http://localhost:3001
+    ORDERS_API_URL: http://localhost:3002
+    SERVICE_TOKEN: TOKEN_SUPER_SECRETO_593
+
+functions:
+  createAndConfirmOrder:
+    handler: handler.createAndConfirmOrder
+    events:
+      - http:
+          path: orchestrator/create-and-confirm-order
+          method: post
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    noPrependStageInUrl: true
+    httpPort: 3000      # Gateway
+    lambdaPort: 3005

@@ -1,0 +1,50 @@
+openapi: 3.0.0
+info:
+  title: Customers API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001
+paths:
+  /customers:
+    get:
+      summary: Listar clientes
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Crear cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: Created
+  /customers/{id}:
+    get:
+      summary: Obtener detalle de cliente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not Found
