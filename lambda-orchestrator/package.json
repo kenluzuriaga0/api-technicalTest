@@ -1,0 +1,17 @@
+{
+  "name": "lambda-orchestrator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "serverless offline start --httpPort 3000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "serverless": "^3.40.0",
+    "serverless-offline": "^14.4.0"
+  }
+}

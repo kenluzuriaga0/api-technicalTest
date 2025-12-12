@@ -1,0 +1,33 @@
+# --- Dependencias de Node.js (Universal) ---
+node_modules/
+npm-debug.log
+yarn-error.log
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+.serverless/
+.webpack/
+.dynamodb/
+
+# --- Build y Dist ---
+dist/
+build/
+coverage/
+
+# --- Archivos de Sistema Operativo ---
+.DS_Store
+Thumbs.db
+
+# --- IDEs y Editores ---
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Docker ---
+mysql_data/
+docker-compose.override.yml
