@@ -3,7 +3,7 @@
 
 # 🖖 API Technical Test
 
-Sistema de microservicios para la gestión de pedidos B2B, compuesto por dos APIs REST (Customers y Orders) y una Lambda Function orquestadora. El sistema implementa patrones de arquitectura por capas, manejo de transacciones distribuidas, idempotencia y seguridad interna.
+Sistema de microservicios para la gestión de pedidos B2B, compuesto por dos APIs REST (Customers y Orders) y una Lambda Function orquestadora
 
 ## 📋 Tabla de Contenidos
 
@@ -24,11 +24,8 @@ El sistema está dividido en tres componentes principales:
 
 1.  **Customers API (Puerto 3001):** Gestiona la información de los clientes. Expone endpoints públicos y endpoints internos protegidos para validación entre servicios.
 2.  **Orders API (Puerto 3002):** Gestiona productos, inventario y el ciclo de vida de las órdenes. Implementa:
-      * **Transacciones ACID:** Para asegurar la consistencia entre la creación de la orden y el descuento de stock.
       * **Idempotencia:** Manejo de duplicados en la confirmación de órdenes mediante `X-Idempotency-Key`.
 3.  **Lambda Orchestrator (Puerto 3000):** Actúa como un patrón *Saga* simplificado o *Orchestrator*. Recibe la petición del cliente, valida datos contra Customers API y coordina la creación y confirmación en Orders API.
-
-**Base de Datos:** MySQL 8.0 (compartida o separada lógicamente por esquemas).
 
 -----
 
@@ -91,7 +88,7 @@ Utilizamos Docker Compose para levantar la base de datos MySQL, `customers-api` 
 docker-compose up -d --build
 ```
 
-  * [cite_start]Esto inicializará MySQL y ejecutará automáticamente los scripts `schema.sql` y `seed.sql`[cite: 56, 57].
+  * Esto inicializará MySQL y ejecutará automáticamente los scripts `schema.sql` y `seed.sql`
   * **Customers API** estará disponible en: `http://localhost:3001`
   * **Orders API** estará disponible en: `http://localhost:3002`
 
@@ -100,17 +97,14 @@ docker-compose up -d --build
 El Lambda se ejecuta fuera de Docker para simular un entorno Serverless localmente usando `serverless-offline`.
 
 ```bash
-# Abrir una nueva terminal
 cd lambda-orchestrator
 
-# Instalar dependencias
 npm install
 
-# Ejecutar en modo desarrollo (puerto 3000)
 npm run dev
 ```
 
-  * **Lambda Endpoint** estará disponible en: `http://localhost:3000/dev/orchestrator/create-and-confirm-order`
+  * **Lambda Endpoint** estará disponible en: `http://localhost:3000/orchestrator/create-and-confirm-order`
 
 -----
 
@@ -122,8 +116,8 @@ Las variables principales están pre-configuradas en el `docker-compose.yml` par
 | Variable | Descripción | Valor por defecto |
 | :--- | :--- | :--- |
 | `DB_HOST` | Host de la base de datos | `db` (en docker) / `localhost` (local) |
-| `DB_USER` | Usuario de MySQL | `user` |
-| `DB_PASS` | Contraseña de MySQL | `password` |
+| `DB_USER` | Usuario de MySQL | `mysql` |
+| `DB_PASS` | Contraseña de MySQL | `mysql` |
 | `DB_NAME` | Nombre de la DB | `orders_db` |
 | `SERVICE_TOKEN` | Token para comunicación entre APIs | `TOKEN_SUPER_SECRETO_593` |
 | `CUSTOMERS_API_URL` | URL base de Customers API | `http://customers-api:3001` |
@@ -170,8 +164,8 @@ curl http://localhost:3002/products
 curl -X POST http://localhost:3001/customers \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Empresa Test S.A.",
-    "email": "compras@test.com",
+    "name": "Empresa Top ",
+    "email": "ventas@test.com",
     "phone": "0991234567"
   }'
 ```
@@ -181,7 +175,7 @@ curl -X POST http://localhost:3001/customers \
 Este request crea la orden, valida el cliente internamente y confirma la orden usando idempotencia.
 
 ```bash
-curl -X POST http://localhost:3000/dev/orchestrator/create-and-confirm-order \
+curl -X POST http://localhost:3000/orchestrator/create-and-confirm-order \
   -H "Content-Type: application/json" \
   -d '{
     "customer_id": 1,
@@ -196,12 +190,3 @@ curl -X POST http://localhost:3000/dev/orchestrator/create-and-confirm-order \
 #### 4\. Probar Idempotencia
 
 Ejecuta el comando del **Paso 3** nuevamente con la misma `idempotency_key`. Deberías recibir la misma respuesta exitosa sin que se duplique la orden ni se descuente stock adicional.
-
------
-
-## 📌 Decisiones de Diseño
-
-1.  **Monorepo:** Se eligió para facilitar la gestión de los tres componentes y compartir la configuración de base de datos y Docker en una sola entrega.
-2.  **Comunicación Síncrona (HTTP):** Para este MVP, el orquestador se comunica vía HTTP con las APIs. En un entorno productivo de alta escala, se podría considerar colas (SQS/SNS).
-3.  **Seguridad Interna:** Se implementó un middleware `internalAuth` que verifica un `SERVICE_TOKEN` compartido, asegurando que solo servicios autorizados puedan acceder a datos sensibles o críticos entre microservicios.
-4.  **Refactorización:** El código ha sido estructurado separando `Controllers`, `Services` y `Repositories` para mejorar la mantenibilidad y testabilidad, alejándose de una estructura monolítica en `index.js`.

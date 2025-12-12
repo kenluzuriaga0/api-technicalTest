@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
     "build": "echo 'No build step required for Node.js' && exit 0",
     "test": "echo 'Error: no test specified' && exit 0",
     "migrate": "echo 'Migrations are handled by Docker entrypoint' && exit 0",

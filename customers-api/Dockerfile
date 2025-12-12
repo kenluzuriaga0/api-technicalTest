@@ -10,5 +10,4 @@ COPY . .
 
 EXPOSE 3001
 
-# Nota: Asegúrate de tener el script "start" en tu package.json o usa "node index.js"
 CMD ["npm", "start"]
