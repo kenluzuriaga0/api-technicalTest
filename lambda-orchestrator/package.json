@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "serverless offline start --httpPort 3000"
+    "dev": "serverless offline start --httpPort 4001"
   },
   "keywords": [],
   "author": "",

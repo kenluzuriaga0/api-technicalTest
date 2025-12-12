@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CustomerController = require('../controllers/customerController');
-const { internalAuth } = require('../middlewares/authMiddleware');
+const { internalAuth } = require('../middlewares/auth');
 
 // Rutas Públicas
 router.post('/', CustomerController.create);

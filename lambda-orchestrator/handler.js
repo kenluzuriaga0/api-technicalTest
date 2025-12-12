@@ -50,7 +50,7 @@ module.exports.createAndConfirmOrder = async (event) => {
       method: 'POST',
       headers: {
         ...headers,
-        'X-Idempotency-Key': idempotency_key // Header crítico [cite: 34]
+        'X-Idempotency-Key': idempotency_key 
       }
     });
 
