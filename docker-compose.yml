@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db: # Servicio de Base de Datos
+    image: mysql:8.0
+    container_name: orders_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: orders_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      # Inicializamos la base de datos
+      - ./db:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    networks:
+      - apitest-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  customers-api: # API de Clientes
+    build: ./customers-api
+    container_name: customers_api
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASS=password
+      - DB_NAME=orders_db
+      - PORT=3001
+      - SERVICE_TOKEN=TOKEN_SUPER_SECRETO_593
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - apitest-network
+
+  orders-api: # API de Órdenes
+    build: ./orders-api
+    container_name: orders_api
+    ports:
+      - "3002:3002"
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASS=password
+      - DB_NAME=orders_db
+      - PORT=3002
+      - CUSTOMERS_API_URL=http://customers-api:3001 # Nombre servidor
+      - SERVICE_TOKEN=TOKEN_SUPER_SECRETO_593
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - apitest-network
+
+volumes:
+  mysql_data:
+
+networks:
+  apitest-network:
+    driver: bridge
