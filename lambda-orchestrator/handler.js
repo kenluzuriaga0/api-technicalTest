@@ -1,6 +1,3 @@
-'use strict';
-
-// Helpers para respuestas HTTP limpias
 const formatResponse = (statusCode, body) => ({
   statusCode,
   body: JSON.stringify(body, null, 2),
@@ -8,11 +5,10 @@ const formatResponse = (statusCode, body) => ({
 
 module.exports.createAndConfirmOrder = async (event) => {
   try {
-    // 1. Parsear el body (Serverless lo entrega como string)
+    // Parsear el body
     const body = JSON.parse(event.body || '{}');
     const { customer_id, items, idempotency_key, correlation_id } = body;
 
-    // Validaciones básicas
     if (!customer_id || !items || !idempotency_key) {
       return formatResponse(400, { error: 'Missing required fields: customer_id, items, idempotency_key' });
     }
@@ -20,10 +16,10 @@ module.exports.createAndConfirmOrder = async (event) => {
     const { CUSTOMERS_API_URL, ORDERS_API_URL, SERVICE_TOKEN } = process.env;
     const headers = { 
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SERVICE_TOKEN}` // Token para endpoints internos
+      'Authorization': `Bearer ${SERVICE_TOKEN}`
     };
 
-    // --- PASO 1: Validar Cliente (Customers API) ---
+    // ---  Validar Cliente ---
     console.log(`🔍 Validando cliente ID: ${customer_id}...`);
     const customerRes = await fetch(`${CUSTOMERS_API_URL}/internal/customers/${customer_id}`, { headers });
     
@@ -33,11 +29,11 @@ module.exports.createAndConfirmOrder = async (event) => {
     }
     const customerData = await customerRes.json();
 
-    // --- PASO 2: Crear Orden (Orders API) ---
+    // --- Crear Orden ---
     console.log(`🛒 Creando orden para cliente ID: ${customer_id}...`);
     const createOrderRes = await fetch(`${ORDERS_API_URL}/orders`, {
       method: 'POST',
-      headers, // Reutilizamos headers
+      headers,
       body: JSON.stringify({ customer_id, items })
     });
 
@@ -48,8 +44,8 @@ module.exports.createAndConfirmOrder = async (event) => {
     const orderData = await createOrderRes.json();
     const orderId = orderData.id;
 
-    // --- PASO 3: Confirmar Orden (Orders API + Idempotency) ---
-    console.log(`✅ Confirmando orden ID: ${orderId} con Key: ${idempotency_key}...`);
+    // --- Confirmar Orden (Orders API + Idempotency) ---
+    console.log(`Confirmando orden ID: ${orderId} con Key: ${idempotency_key}...`);
     const confirmRes = await fetch(`${ORDERS_API_URL}/orders/${orderId}/confirm`, {
       method: 'POST',
       headers: {

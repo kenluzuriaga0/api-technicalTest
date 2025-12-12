@@ -12,6 +12,6 @@
   "description": "",
   "devDependencies": {
     "serverless": "^3.40.0",
-    "serverless-offline": "^14.4.0"
+    "serverless-offline": "^13.3.3"
   }
 }

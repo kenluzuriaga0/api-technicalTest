@@ -7,8 +7,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: orders_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
     ports:
       - "3306:3306"
     volumes:
@@ -29,8 +29,8 @@ services:
       - "3001:3001"
     environment:
       - DB_HOST=db
-      - DB_USER=user
-      - DB_PASS=password
+      - DB_USER=mysql
+      - DB_PASS=mysql
       - DB_NAME=orders_db
       - PORT=3001
       - SERVICE_TOKEN=TOKEN_SUPER_SECRETO_593
@@ -47,8 +47,8 @@ services:
       - "3002:3002"
     environment:
       - DB_HOST=db
-      - DB_USER=user
-      - DB_PASS=password
+      - DB_USER=mysql
+      - DB_PASS=mysql
       - DB_NAME=orders_db
       - PORT=3002
       - CUSTOMERS_API_URL=http://customers-api:3001 # Nombre servidor
