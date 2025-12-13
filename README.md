@@ -81,10 +81,9 @@ El repositorio es un *monorepo* organizado de la siguiente manera:
 
 ### 1\. Levantar Infraestructura (Base de Datos y APIs)
 
-Utilizamos Docker Compose para levantar la base de datos MySQL, `customers-api` y `orders-api`.
+Utilizamos Docker Compose en la raiz del proyecto para levantar la base de datos MySQL, `customers-api` y `orders-api`.
 
 ```bash
-# En la raíz del proyecto
 docker-compose up -d --build
 ```
 
@@ -156,6 +155,7 @@ Puedes probar el flujo completo copiando y pegando estos comandos en tu terminal
 
 ```bash
 curl http://localhost:3002/products
+curl http://localhost:3001/customers
 ```
 
 #### 2\. Crear un Cliente Nuevo
@@ -164,8 +164,8 @@ curl http://localhost:3002/products
 curl -X POST http://localhost:3001/customers \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Empresa Top ",
-    "email": "ventas@test.com",
+    "name": "Empresa Super Top ",
+    "email": "ventas1@gmail.com",
     "phone": "0991234567"
   }'
 ```
@@ -175,7 +175,7 @@ curl -X POST http://localhost:3001/customers \
 Este request crea la orden, valida el cliente internamente y confirma la orden usando idempotencia.
 
 ```bash
-curl -X POST http://localhost:3000/orchestrator/create-and-confirm-order \
+curl -X POST http://localhost:4001/orchestrator/create-and-confirm-order \
   -H "Content-Type: application/json" \
   -d '{
     "customer_id": 1,
