@@ -25,7 +25,7 @@ El sistema está dividido en tres componentes principales:
 1.  **Customers API (Puerto 3001):** Gestiona la información de los clientes. Expone endpoints públicos y endpoints internos protegidos para validación entre servicios.
 2.  **Orders API (Puerto 3002):** Gestiona productos, inventario y el ciclo de vida de las órdenes. Implementa:
       * **Idempotencia:** Manejo de duplicados en la confirmación de órdenes mediante `X-Idempotency-Key`.
-3.  **Lambda Orchestrator (Puerto 3000):** Actúa como un patrón *Saga* simplificado o *Orchestrator*. Recibe la petición del cliente, valida datos contra Customers API y coordina la creación y confirmación en Orders API.
+3.  **Lambda Orchestrator (Puerto 4001):** Actúa como un patrón *Saga* simplificado o *Orchestrator*. Recibe la petición del cliente, valida datos contra Customers API y coordina la creación y confirmación en Orders API.
 
 -----
 
@@ -103,7 +103,7 @@ npm install
 npm run dev
 ```
 
-  * **Lambda Endpoint** estará disponible en: `http://localhost:3000/orchestrator/create-and-confirm-order`
+  * **Lambda Endpoint** estará disponible en: `http://localhost:4001/orchestrator/create-and-confirm-order`
 
 -----
 
@@ -139,7 +139,7 @@ Las variables principales están pre-configuradas en el `docker-compose.yml` par
       * **Requiere Header:** `X-Idempotency-Key` (String único).
   * `GET /products`: Lista productos y stock disponible.
 
-### ⚡ Lambda Orchestrator (Puerto 3000)
+### ⚡ Lambda Orchestrator (Puerto 4001)
 
   * `POST /orchestrator/create-and-confirm-order`: Flujo completo.
       * **Body:** `{ customer_id, items, idempotency_key, correlation_id }`
