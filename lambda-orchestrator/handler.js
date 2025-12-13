@@ -1,3 +1,23 @@
+const { z } = require('zod');
+
+// Definimos el esquema de validación fuera del handler para mejor rendimiento
+const orchestratorSchema = z.object({
+  customer_id: z.number({ required_error: "customer_id es requerido" })
+    .int()
+    .positive("El ID del cliente debe ser positivo"),
+  
+  items: z.array(z.object({
+    product_id: z.number().int().positive(),
+    qty: z.number().int().positive("La cantidad debe ser mayor a 0")
+  })).nonempty("La orden debe tener al menos un producto"),
+  
+  idempotency_key: z.string({ required_error: "idempotency_key es requerido" })
+    .min(1, "La llave de idempotencia no puede estar vacía"),
+  
+  correlation_id: z.string().optional()
+});
+
+// Helper para formatear respuestas HTTP de Lambda
 const formatResponse = (statusCode, body) => ({
   statusCode,
   body: JSON.stringify(body, null, 2),
@@ -5,13 +25,23 @@ const formatResponse = (statusCode, body) => ({
 
 module.exports.createAndConfirmOrder = async (event) => {
   try {
-    // Parsear el body
-    const body = JSON.parse(event.body || '{}');
-    const { customer_id, items, idempotency_key, correlation_id } = body;
+    // Parsear el body de la petición
+    const rawBody = JSON.parse(event.body || '{}');
 
-    if (!customer_id || !items || !idempotency_key) {
-      return formatResponse(400, { error: 'Missing required fields: customer_id, items, idempotency_key' });
+    // Validar los datos con Zod
+    const validation = orchestratorSchema.safeParse(rawBody);
+
+    if (!validation.success) {
+      // Si la validación falla, retornamos 400 con el detalle de los errores
+      console.error("Validation Error:", JSON.stringify(validation.error.issues));
+      return formatResponse(400, { 
+        error: 'Validation Error', 
+        details: validation.error.issues 
+      });
     }
+
+    // Usar los datos validados (Tipados y seguros)
+    const { customer_id, items, idempotency_key, correlation_id } = validation.data;
 
     const { CUSTOMERS_API_URL, ORDERS_API_URL, SERVICE_TOKEN } = process.env;
     const headers = { 
@@ -19,8 +49,8 @@ module.exports.createAndConfirmOrder = async (event) => {
       'Authorization': `Bearer ${SERVICE_TOKEN}`
     };
 
-    // ---  Validar Cliente ---
-    console.log(`🔍 Validando cliente ID: ${customer_id}...`);
+    // --- Validar Cliente ---
+    console.log(`Validando cliente ID: ${customer_id}...`);
     const customerRes = await fetch(`${CUSTOMERS_API_URL}/internal/customers/${customer_id}`, { headers });
     
     if (!customerRes.ok) {
@@ -30,7 +60,7 @@ module.exports.createAndConfirmOrder = async (event) => {
     const customerData = await customerRes.json();
 
     // --- Crear Orden ---
-    console.log(`🛒 Creando orden para cliente ID: ${customer_id}...`);
+    console.log(`Creando orden para cliente ID: ${customer_id}...`);
     const createOrderRes = await fetch(`${ORDERS_API_URL}/orders`, {
       method: 'POST',
       headers,
@@ -44,7 +74,7 @@ module.exports.createAndConfirmOrder = async (event) => {
     const orderData = await createOrderRes.json();
     const orderId = orderData.id;
 
-    // --- Confirmar Orden (Orders API + Idempotency) ---
+    // ---  Confirmar Orden (Orders API + Idempotency) ---
     console.log(`Confirmando orden ID: ${orderId} con Key: ${idempotency_key}...`);
     const confirmRes = await fetch(`${ORDERS_API_URL}/orders/${orderId}/confirm`, {
       method: 'POST',
@@ -56,12 +86,12 @@ module.exports.createAndConfirmOrder = async (event) => {
 
     if (!confirmRes.ok) {
       const err = await confirmRes.json();
-      // Nota: Si falla la confirmación, la orden queda en CREATED (según reglas de negocio)
+      // Nota: La orden queda en estado CREATED si esto falla, lo cual es correcto según reglas de negocio
       return formatResponse(confirmRes.status, { error: 'Failed to confirm order', details: err });
     }
     const confirmData = await confirmRes.json();
 
-    // --- PASO 4: Respuesta Consolidada  ---
+    // --- Respuesta Consolidada ---
     const responsePayload = {
       success: true,
       correlationId: correlation_id || 'N/A',
